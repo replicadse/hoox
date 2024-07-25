@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'hoox'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hoox",
+                    "--package=hoox",
+                ],
+                "filter": {
+                    "name": "hoox",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "generate",
+                "local",
+                "--source", 
+                "./templates/rust+cli",
+                "--out",
+                "./test",
+                "--force",
+                "-v", "app.name=testapp",
+                "-v", "app.about=some testapp",
+                "-v", "app.description=boosker",
+                "-v", "app.cargo.keywords=[\"testapp\"]",
+                "-v", "app.cargo.categories=[\"command-line-utility\"]",
+                "-v", "app.repo=testapp.com/gitrepo",
+                "-v", "author.name=alex",
+                "-v", "author.email=aw@x.com",
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+    ]
+}

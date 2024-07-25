@@ -1,0 +1,4 @@
+version = "0.0.0"
+
+[hooks.pre-commit]
+command = "cargo +nightly fmt --all --check"
