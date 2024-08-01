@@ -34,32 +34,11 @@ async fn main() -> Result<()> {
             Ok(())
         },
         | crate::args::Command::Init => {
-            if let Err(_) = std::fs::read_to_string("./.hoox.toml") {
-                std::fs::write(
-                    "./.hoox.toml",
-                    format!(
-                        r#"version = "{}
-
-[hooks.pre-commit]
-command = "cargo +nightly fmt --all --check"
-"#,
-                        env!("CARGO_PKG_VERSION")
-                    ),
-                )?;
-            }
-            schema::init_hooks_files().await?;
+            hoox::init().await?;
             Ok(())
         },
         | crate::args::Command::Run { hook } => {
-            let hoox = toml::from_str::<schema::Hoox>(&std::fs::read_to_string(".hoox.toml")?)?;
-            if let Some(hook) = hoox.hooks.get(&hook) {
-                let program = hook.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
-                let output = std::process::Command::new(&program[0])
-                    .args(program.iter().skip(1).collect::<Vec<_>>())
-                    .arg(&hook.command)
-                    .output()?;
-                println!("{}", String::from_utf8_lossy(&output.stdout));
-            }
+            hoox::run(&hook).await?;
             Ok(())
         },
     }

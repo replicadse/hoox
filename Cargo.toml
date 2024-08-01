@@ -28,3 +28,11 @@ clap-markdown = "0.1.3"
 serde = { version = "1.0.175", features = ["derive"] }
 anyhow = "1.0.86"
 toml = "0.8.15"
+
+[build-dependencies]
+async-trait = "0.1.72"
+tokio = { version = "1.29.1", features = ["rt", "rt-multi-thread", "macros"] }
+serde = { version = "1.0.175", features = ["derive"] }
+anyhow = "1.0.86"
+toml = "0.8.15"
+ci_info = "0.14.14"
