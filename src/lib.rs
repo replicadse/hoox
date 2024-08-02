@@ -72,7 +72,7 @@ pub async fn run(hook: &str) -> Result<()> {
                 println!("{}", String::from_utf8_lossy(&output.stdout));
             }
 
-            if command.severity == Some(schema::CommandSeverity::Error) {
+            if command.severity.is_none() || command.severity == Some(schema::CommandSeverity::Error) {
                 let status = exec.status().unwrap();
                 if !status.success() {
                     return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));
