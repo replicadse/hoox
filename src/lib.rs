@@ -66,10 +66,15 @@ pub async fn run(hook: &str) -> Result<()> {
             let mut exec = &mut std::process::Command::new(&program[0]);
             exec = exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command);
             let output = exec.output()?;
-            if exec.status().unwrap().success() {
-                println!("{}", String::from_utf8_lossy(&output.stdout));
-            } else {
-                println!("{}", String::from_utf8_lossy(&output.stdout));
+
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.len() > 0 {
+                println!("{}", stdout);
+            }
+
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            if stderr.len() > 0 {
+                eprintln!("{}", stderr);
             }
 
             if command.severity.is_none() || command.severity == Some(schema::CommandSeverity::Error) {
