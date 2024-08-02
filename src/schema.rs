@@ -36,6 +36,11 @@ pub async fn init_hooks_files() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct WithVersion {
+    pub version: String,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Hoox {
     pub version: String,

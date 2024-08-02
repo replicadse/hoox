@@ -36,7 +36,14 @@ command = "cargo +nightly fmt --all --check"
 }
 
 pub async fn run(hook: &str) -> Result<()> {
-    let hoox = toml::from_str::<schema::Hoox>(&std::fs::read_to_string(HOOX_DEF_PATH)?)?;
+    let file_content = std::fs::read_to_string(HOOX_DEF_PATH)?;
+    let version = toml::from_str::<schema::WithVersion>(&file_content)?;
+    let version_check = version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap();
+    if version_check == version_compare::Cmp::Gt {
+        return Err(anyhow::anyhow!("hoox version is outdated, please update"));
+    }
+    let hoox = toml::from_str::<schema::Hoox>(&file_content)?;
+
     if let Some(hook) = hoox.hooks.get(hook) {
         let program = hook.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
         let mut exec = &mut std::process::Command::new(&program[0]);
