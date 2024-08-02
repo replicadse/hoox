@@ -12,6 +12,7 @@
 
 ```yaml
 version: "0.0.0"
+verbosity: all # [all, none, stdout, stderr]
 
 # anchors
 .cargo_fmt_check: &cargo_fmt_check |-
@@ -24,7 +25,7 @@ hooks:
     - command: *cargo_fmt_check # re-use anchor
     - command: *cargo_test
     - command: 'cargo doc --no-deps'
-      verbosity: stderr # [all, none, stdout, stderr]
+      verbosity: stderr # overrides global verbosity
       severity: warn # [error, warn]
   "pre-push": # pre-push hook
     - command: *cargo_fmt_check
