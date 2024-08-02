@@ -1,7 +1,10 @@
 use std::str::FromStr;
 
 use anyhow::Result;
-use clap::Arg;
+use clap::{
+    Arg,
+    ArgAction,
+};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Privilege {
@@ -42,7 +45,7 @@ pub enum Command {
     Autocomplete { path: String, shell: clap_complete::Shell },
 
     Init,
-    Run { hook: String },
+    Run { hook: String, args: Vec<String> },
 }
 
 pub struct ClapArgumentLoader {}
@@ -86,7 +89,10 @@ impl ClapArgumentLoader {
             )
             .subcommand(clap::Command::new("init").about("Initialize repository hooks."))
             .subcommand(
-                clap::Command::new("run").about("Run a hook.").arg(clap::Arg::new("hook").long("hook").required(true)),
+                clap::Command::new("run")
+                    .about("Run a hook.")
+                    .arg(clap::Arg::new("hook").required(true).index(1))
+                    .arg(clap::Arg::new("args").required(false).action(ArgAction::Append).index(2)),
             )
     }
 
@@ -117,7 +123,11 @@ impl ClapArgumentLoader {
             Command::Init
         } else if let Some(subc) = command.subcommand_matches("run") {
             Command::Run {
-                hook: subc.get_one::<String>("hook").unwrap().into(),
+                hook: subc.get_one::<String>("hook").unwrap().to_owned(),
+                args: match subc.get_many::<String>("args") {
+                    | Some(v) => v.map(|v| v.to_string()).collect::<Vec<String>>(),
+                    | None => vec![],
+                },
             }
         } else {
             return Err(anyhow::anyhow!("unknown command"));

@@ -52,7 +52,7 @@ hooks:
     Ok(())
 }
 
-pub async fn run(hook: &str) -> Result<()> {
+pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
     let mut cwd = std::env::current_dir()?;
     while std::fs::read_dir(cwd.join(".git")).is_err() {
         if !cwd.pop() {
@@ -61,7 +61,7 @@ pub async fn run(hook: &str) -> Result<()> {
     }
     let hoox_path = cwd.join(HOOX_FILE_NAME);
 
-    let file_content = std::fs::read_to_string(hoox_path)?;
+    let file_content = std::fs::read_to_string(&hoox_path)?;
     let version = serde_yaml::from_str::<schema::WithVersion>(&file_content)?;
     let version_check = version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap();
     if version_check == version_compare::Cmp::Gt {
@@ -70,11 +70,13 @@ pub async fn run(hook: &str) -> Result<()> {
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
     let verbosity = &hoox.verbosity.unwrap_or(Verbosity::All);
 
+    // println!("=========> Running hook: {}", &hook);
     if let Some(hook) = hoox.hooks.get(hook) {
         for command in hook {
             let program = command.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
             let mut exec = &mut std::process::Command::new(&program[0]);
-            exec = exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command);
+            exec =
+                exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command).arg(&hoox_path).args(args);
             let output = exec.output()?;
 
             let verbosity = command.verbosity.clone().unwrap_or(verbosity.clone());

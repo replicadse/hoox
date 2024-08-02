@@ -37,8 +37,8 @@ async fn main() -> Result<()> {
             hoox::init(std::env::current_dir()?).await?;
             Ok(())
         },
-        | crate::args::Command::Run { hook } => {
-            hoox::run(&hook).await?;
+        | crate::args::Command::Run { hook, args } => {
+            hoox::run(&hook, &args).await?;
             Ok(())
         },
     }
