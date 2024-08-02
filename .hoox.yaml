@@ -21,14 +21,20 @@ version: "0.0.0"
 # - sendemail-validate 
 # - update
 
-cargo_check: &cargo_check |-
+.cargo_fmt_check: &cargo_fmt_check |-
   cargo +nightly fmt --all -- --check
+.cargo_test: &cargo_test |-
+  cargo test --all
 
 hooks:
   "pre-commit":
-    - command: *cargo_check
+    - command: *cargo_fmt_check
+    - command: *cargo_test
+    - command: 'cargo doc --no-deps'
+      severity: warn
   "pre-push":
-    - command: *cargo_check
+    - command: *cargo_fmt_check
+    - command: *cargo_test
 
   # "pre-commit":
   #   - program: ["python", "-c"]

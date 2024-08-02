@@ -13,7 +13,7 @@
 ```yaml
 version: "0.0.0"
 
-cargo_check: &cargo_check |-
+.cargo_check: &cargo_check |-
   cargo +nightly fmt --all -- --check
 
 hooks:
