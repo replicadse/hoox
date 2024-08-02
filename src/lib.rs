@@ -70,7 +70,6 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
     let verbosity = &hoox.verbosity.unwrap_or(Verbosity::All);
 
-    // println!("=========> Running hook: {}", &hook);
     if let Some(hook) = hoox.hooks.get(hook) {
         for command in hook {
             let program = command.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();

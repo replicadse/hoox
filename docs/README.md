@@ -29,9 +29,15 @@ hooks:
     - command: 'cargo doc --no-deps'
       verbosity: stderr # overrides global verbosity
       severity: warn # [error, warn]
+
   "pre-push": # pre-push hook
     - command: *cargo_fmt_check
     - command: *cargo_test
+
+  "prepare-commit-msg":
+    - command: |-
+        COMMIT_MSG_FILE=$1
+        echo "Work in progress" > $COMMIT_MSG_FILE
 
 ```
 
