@@ -13,14 +13,23 @@
 ```yaml
 version: "0.0.0"
 
-.cargo_check: &cargo_check |-
+# anchors
+.cargo_fmt_check: &cargo_fmt_check |-
   cargo +nightly fmt --all -- --check
+.cargo_test: &cargo_test |-
+  cargo test --all
 
 hooks:
-  "pre-commit":
-    - command: *cargo_check
-  "pre-push":
-    - command: *cargo_check
+  "pre-commit": # pre-commit hook
+    - command: *cargo_fmt_check # re-use anchor
+    - command: *cargo_test
+    - command: 'cargo doc --no-deps'
+      verbosity: stderr # [all, none, stdout, stderr]
+      severity: warn # [error, warn]
+  "pre-push": # pre-push hook
+    - command: *cargo_fmt_check
+    - command: *cargo_test
+
 ```
 
 ### Available hooks

@@ -23,17 +23,23 @@ pub async fn init() -> Result<()> {
 # Available Git hooks:
 # - {}
 
-hooks:
-  "pre-commit":
-    - command: |-
-        cargo +nightly fmt --all -- --check
+# anchors
+.cargo_fmt_check: &cargo_fmt_check |-
+  cargo +nightly fmt --all -- --check
+.cargo_test: &cargo_test |-
+  cargo test --all
 
-  # "pre-commit":
-  #   - program: ["python", "-c"]
-  #     severity: warn
-  #     command: |-
-  #       print('executing hook')
-  #       print('calling python program')
+hooks:
+  "pre-commit": # pre-commit hook
+    - command: *cargo_fmt_check # re-use anchor
+    - command: *cargo_test
+    - command: 'cargo doc --no-deps'
+      verbosity: stderr # [all, none, stdout, stderr]
+      severity: warn # [error, warn]
+  "pre-push": # pre-push hook
+    - command: *cargo_fmt_check
+    - command: *cargo_test
+
 "#,
                 env!("CARGO_PKG_VERSION"),
                 schema::GIT_HOOK_NAMES.join(" \n# - ")

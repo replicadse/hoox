@@ -1,27 +1,6 @@
 version: "0.0.0"
 verbosity: all
 
-# Available Git hooks:
-# - applypatch-msg 
-# - commit-msg 
-# - post-applypatch 
-# - post-checkout 
-# - post-commit 
-# - post-merge 
-# - post-receive 
-# - post-rewrite 
-# - post-update 
-# - pre-applypatch 
-# - pre-auto-gc 
-# - pre-commit 
-# - pre-push 
-# - pre-rebase 
-# - pre-receive 
-# - prepare-commit-msg 
-# - push-to-checkout 
-# - sendemail-validate 
-# - update
-
 .cargo_fmt_check: &cargo_fmt_check |-
   cargo +nightly fmt --all -- --check
 .cargo_test: &cargo_test |-
@@ -37,10 +16,3 @@ hooks:
   "pre-push":
     - command: *cargo_fmt_check
     - command: *cargo_test
-
-  # "pre-commit":
-  #   - program: ["python", "-c"]
-  #     severity: warn
-  #     command: |-
-  #       print('executing hook')
-  #       print('calling python program')
