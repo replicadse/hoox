@@ -1,13 +1,18 @@
 pub mod schema;
 
+use std::{
+    path::PathBuf,
+    str::FromStr,
+};
+
 use anyhow::Result;
 use schema::Verbosity;
 
 const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
 
-pub async fn init() -> Result<()> {
-    let mut cwd = std::env::current_dir()?;
+pub async fn init(mut cwd: PathBuf) -> Result<()> {
     while std::fs::read_dir(cwd.join(".git")).is_err() {
+        dbg!(&cwd);
         if !cwd.pop() {
             return Err(anyhow::anyhow!("not a git repository"));
         }
