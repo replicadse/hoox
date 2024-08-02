@@ -21,13 +21,18 @@ version: "0.0.0"
 # - sendemail-validate 
 # - update
 
+cargo_check: &cargo_check |-
+  cargo +nightly fmt --all -- --check
+
 hooks:
   "pre-commit":
-    command: |-
-      cargo +nightly fmt --all -- --check
+    - command: *cargo_check
+  "pre-push":
+    - command: *cargo_check
+
   # "pre-commit":
-  #   program: ["python", "-c"]
-  #   severity: warn
-  #   command: |-
-  #     print('executing hook')
-  #     print('calling python program')
+  #   - program: ["python", "-c"]
+  #     severity: warn
+  #     command: |-
+  #       print('executing hook')
+  #       print('calling python program')

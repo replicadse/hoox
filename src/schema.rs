@@ -46,11 +46,11 @@ pub struct WithVersion {
 #[serde(rename_all = "snake_case")]
 pub struct Hoox {
     pub version: String,
-    pub hooks: HashMap<String, Command>,
+    pub hooks: HashMap<String, Vec<Command>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct Command {
     pub program: Option<Vec<String>>,
     pub severity: Option<CommandSeverity>,
@@ -72,11 +72,11 @@ mod test {
         let hoox = Hoox {
             version: env!("CARGO_PKG_VERSION").to_owned(),
             hooks: HashMap::from_iter(GIT_HOOK_NAMES.iter().map(|hook_name| {
-                (hook_name.to_string(), Command {
+                (hook_name.to_string(), vec![Command {
                     program: Some(vec!["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
                     command: "echo 'Hello, world!'".to_owned(),
                     severity: Some(CommandSeverity::Warn),
-                })
+                }])
             })),
         };
         println!("{}", serde_yaml::to_string(&hoox).unwrap());

@@ -24,13 +24,15 @@ pub async fn init() -> Result<()> {
 
 hooks:
   "pre-commit":
-    command: |-
-      cargo +nightly fmt --all -- --check
+    - command: |-
+        cargo +nightly fmt --all -- --check
+
   # "pre-commit":
-  #   program: ["python", "-c"]
-  #   command: |-
-  #     print('executing hook')
-  #     print('calling python program')
+  #   - program: ["python", "-c"]
+  #     severity: warn
+  #     command: |-
+  #       print('executing hook')
+  #       print('calling python program')
 "#,
                 env!("CARGO_PKG_VERSION"),
                 schema::GIT_HOOK_NAMES.join(" \n# - ")
@@ -59,20 +61,22 @@ pub async fn run(hook: &str) -> Result<()> {
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
 
     if let Some(hook) = hoox.hooks.get(hook) {
-        let program = hook.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
-        let mut exec = &mut std::process::Command::new(&program[0]);
-        exec = exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&hook.command);
-        let output = exec.output()?;
-        if exec.status().unwrap().success() {
-            println!("{}", String::from_utf8_lossy(&output.stdout));
-        } else {
-            println!("{}", String::from_utf8_lossy(&output.stdout));
-        }
+        for command in hook {
+            let program = command.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
+            let mut exec = &mut std::process::Command::new(&program[0]);
+            exec = exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command);
+            let output = exec.output()?;
+            if exec.status().unwrap().success() {
+                println!("{}", String::from_utf8_lossy(&output.stdout));
+            } else {
+                println!("{}", String::from_utf8_lossy(&output.stdout));
+            }
 
-        if hook.severity == Some(schema::CommandSeverity::Error) {
-            let status = exec.status().unwrap();
-            if !status.success() {
-                return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));
+            if command.severity == Some(schema::CommandSeverity::Error) {
+                let status = exec.status().unwrap();
+                if !status.success() {
+                    return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));
+                }
             }
         }
     }

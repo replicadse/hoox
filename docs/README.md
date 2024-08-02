@@ -13,18 +13,14 @@
 ```yaml
 version: "0.0.0"
 
+cargo_check: &cargo_check |-
+  cargo +nightly fmt --all -- --check
+
 hooks:
   "pre-commit":
-    # severity: error
-    command: |-
-      cargo +nightly fmt --all -- --check
-  # "pre-commit":
-  #   program: ["python", "-c"]
-  #   severity: warn
-  #   command: |-
-  #     print('executing hook')
-  #     print('calling python program')
-
+    - command: *cargo_check
+  "pre-push":
+    - command: *cargo_check
 ```
 
 ### Available hooks
