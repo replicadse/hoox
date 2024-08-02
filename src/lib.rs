@@ -1,9 +1,6 @@
 pub mod schema;
 
-use std::{
-    path::PathBuf,
-    str::FromStr,
-};
+use std::path::PathBuf;
 
 use anyhow::Result;
 use schema::Verbosity;
