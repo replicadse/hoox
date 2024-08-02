@@ -1,4 +1,4 @@
-version = "0.0.0"
+version: "0.0.0"
 
 # Available Git hooks:
 # - applypatch-msg 
@@ -21,12 +21,13 @@ version = "0.0.0"
 # - sendemail-validate 
 # - update
 
-[hooks.pre-commit]
-command = "cargo +nightly fmt --all -- --check"
-
-# [hooks.pre-commit]
-# program = ["python", "-c"]
-# command = """
-# print('executing hook')
-# print('calling python program')
-# """
+hooks:
+  "pre-commit":
+    command: |-
+      cargo +nightly fmt --all -- --check
+  # "pre-commit":
+  #   program: ["python", "-c"]
+  #   severity: warn
+  #   command: |-
+  #     print('executing hook')
+  #     print('calling python program')

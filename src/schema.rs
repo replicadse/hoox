@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     os::unix::fs::PermissionsExt,
-    path::Path,
+    path::PathBuf,
 };
 
 pub const GIT_HOOK_NAMES: [&str; 19] = [
@@ -26,10 +26,10 @@ pub const GIT_HOOK_NAMES: [&str; 19] = [
     "update",
 ];
 
-pub async fn init_hooks_files() -> anyhow::Result<()> {
+pub async fn init_hooks_files(cwd: &PathBuf) -> anyhow::Result<()> {
     let perms = std::fs::Permissions::from_mode(0o755);
     for hook_name in GIT_HOOK_NAMES {
-        let hook_path = Path::new("./.git/hooks").join(&hook_name);
+        let hook_path = cwd.join(".git/hooks").join(&hook_name);
         std::fs::write(&hook_path, "hoox run --hook=${0##*/}")?;
         std::fs::set_permissions(&hook_path, perms.clone())?;
     }
@@ -37,20 +37,31 @@ pub async fn init_hooks_files() -> anyhow::Result<()> {
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct WithVersion {
     pub version: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Hoox {
     pub version: String,
     pub hooks: HashMap<String, Command>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Command {
     pub program: Option<Vec<String>>,
+    pub severity: Option<CommandSeverity>,
     pub command: String,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommandSeverity {
+    Error,
+    Warn,
 }
 
 mod test {
@@ -64,9 +75,10 @@ mod test {
                 (hook_name.to_string(), Command {
                     program: Some(vec!["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
                     command: "echo 'Hello, world!'".to_owned(),
+                    severity: Some(CommandSeverity::Warn),
                 })
             })),
         };
-        println!("{}", toml::to_string(&hoox).unwrap());
+        println!("{}", serde_yaml::to_string(&hoox).unwrap());
     }
 }

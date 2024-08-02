@@ -2,47 +2,61 @@ pub mod schema;
 
 use anyhow::Result;
 
-const HOOX_DEF_PATH: &'static str = "./.hoox.toml";
+const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
 
 pub async fn init() -> Result<()> {
-    if let Err(_) = std::fs::read_to_string(HOOX_DEF_PATH) {
+    let mut cwd = std::env::current_dir()?;
+    while std::fs::read_dir(cwd.join(".git")).is_err() {
+        if !cwd.pop() {
+            return Err(anyhow::anyhow!("not a git repository"));
+        }
+    }
+    let hoox_path = cwd.join(HOOX_FILE_NAME);
+
+    if let Err(_) = std::fs::read_to_string(&hoox_path) {
         std::fs::write(
-            HOOX_DEF_PATH,
+            &hoox_path,
             format!(
-                r#"version = "{}"
+                r#"version: "{}"
 
 # Available Git hooks:
 # - {}
 
-[hooks.pre-commit]
-command = "cargo +nightly fmt --all --check"
-
-# Examples:
-
-# [hooks.pre-commit]
-# program = ["python", "-c"]
-# command = """
-# print('executing hook')
-# print('calling python program')
-# """
+hooks:
+  "pre-commit":
+    command: |-
+      cargo +nightly fmt --all -- --check
+  # "pre-commit":
+  #   program: ["python", "-c"]
+  #   command: |-
+  #     print('executing hook')
+  #     print('calling python program')
 "#,
                 env!("CARGO_PKG_VERSION"),
                 schema::GIT_HOOK_NAMES.join(" \n# - ")
             ),
         )?;
     }
-    schema::init_hooks_files().await?;
+    schema::init_hooks_files(&cwd).await?;
     Ok(())
 }
 
 pub async fn run(hook: &str) -> Result<()> {
-    let file_content = std::fs::read_to_string(HOOX_DEF_PATH)?;
-    let version = toml::from_str::<schema::WithVersion>(&file_content)?;
+    let mut cwd = std::env::current_dir()?;
+    while std::fs::read_dir(cwd.join(".git")).is_err() {
+        if !cwd.pop() {
+            return Err(anyhow::anyhow!("not a git repository"));
+        }
+    }
+    let hoox_path = cwd.join(HOOX_FILE_NAME);
+
+    let file_content = std::fs::read_to_string(hoox_path)?;
+    let version = serde_yaml::from_str::<schema::WithVersion>(&file_content)?;
     let version_check = version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap();
     if version_check == version_compare::Cmp::Gt {
         return Err(anyhow::anyhow!("hoox version is outdated, please update"));
     }
-    let hoox = toml::from_str::<schema::Hoox>(&file_content)?;
+    let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
 
     if let Some(hook) = hoox.hooks.get(hook) {
         let program = hook.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
@@ -54,8 +68,12 @@ pub async fn run(hook: &str) -> Result<()> {
         } else {
             println!("{}", String::from_utf8_lossy(&output.stdout));
         }
-        if !exec.status().unwrap().success() {
-            std::process::exit(1);
+
+        if hook.severity == Some(schema::CommandSeverity::Error) {
+            let status = exec.status().unwrap();
+            if !status.success() {
+                return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));
+            }
         }
     }
     Ok(())
