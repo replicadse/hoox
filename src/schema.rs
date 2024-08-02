@@ -46,6 +46,7 @@ pub struct WithVersion {
 #[serde(rename_all = "snake_case")]
 pub struct Hoox {
     pub version: String,
+    pub verbosity: Option<Verbosity>,
     pub hooks: HashMap<String, Vec<Command>>,
 }
 
@@ -55,6 +56,16 @@ pub struct Command {
     pub program: Option<Vec<String>>,
     pub severity: Option<CommandSeverity>,
     pub command: String,
+    pub verbosity: Option<Verbosity>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Verbosity {
+    All,
+    None,
+    Stdout,
+    Stderr,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -71,11 +82,13 @@ mod test {
     async fn test_ser_hoox() {
         let hoox = Hoox {
             version: env!("CARGO_PKG_VERSION").to_owned(),
+            verbosity: Some(Verbosity::All),
             hooks: HashMap::from_iter(GIT_HOOK_NAMES.iter().map(|hook_name| {
                 (hook_name.to_string(), vec![Command {
                     program: Some(vec!["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
                     command: "echo 'Hello, world!'".to_owned(),
                     severity: Some(CommandSeverity::Warn),
+                    verbosity: None,
                 }])
             })),
         };

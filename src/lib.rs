@@ -1,6 +1,7 @@
 pub mod schema;
 
 use anyhow::Result;
+use schema::Verbosity;
 
 const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
 
@@ -59,6 +60,7 @@ pub async fn run(hook: &str) -> Result<()> {
         return Err(anyhow::anyhow!("hoox version is outdated, please update"));
     }
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
+    let verbosity = &hoox.verbosity.unwrap_or(Verbosity::All);
 
     if let Some(hook) = hoox.hooks.get(hook) {
         for command in hook {
@@ -67,14 +69,18 @@ pub async fn run(hook: &str) -> Result<()> {
             exec = exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command);
             let output = exec.output()?;
 
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            if stdout.len() > 0 {
-                println!("{}", stdout);
+            let verbosity = command.verbosity.clone().unwrap_or(verbosity.clone());
+            if verbosity == Verbosity::All || verbosity == Verbosity::Stdout {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.len() > 0 {
+                    println!("{}", stdout);
+                }
             }
-
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            if stderr.len() > 0 {
-                eprintln!("{}", stderr);
+            if verbosity == Verbosity::All || verbosity == Verbosity::Stderr {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if stderr.len() > 0 {
+                    eprintln!("{}", stderr);
+                }
             }
 
             if command.severity.is_none() || command.severity == Some(schema::CommandSeverity::Error) {

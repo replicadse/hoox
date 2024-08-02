@@ -1,4 +1,5 @@
 version: "0.0.0"
+verbosity: all
 
 # Available Git hooks:
 # - applypatch-msg 
@@ -31,6 +32,7 @@ hooks:
     - command: *cargo_fmt_check
     - command: *cargo_test
     - command: 'cargo doc --no-deps'
+      verbosity: stderr
       severity: warn
   "pre-push":
     - command: *cargo_fmt_check
