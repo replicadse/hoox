@@ -1,5 +1,7 @@
 # hoox
 
+![](hoox.png)
+
 `hoox` is an application / library that allows users to manage git hooks as part of the repository as well as in a central place.
 
 ## Workflow
