@@ -7,15 +7,18 @@ use schema::Verbosity;
 
 const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
 
-pub async fn init(mut cwd: PathBuf) -> Result<()> {
+pub fn get_repo_path(mut cwd: PathBuf) -> Result<PathBuf> {
     while std::fs::read_dir(cwd.join(".git")).is_err() {
         dbg!(&cwd);
         if !cwd.pop() {
             return Err(anyhow::anyhow!("not a git repository"));
         }
     }
-    let hoox_path = cwd.join(HOOX_FILE_NAME);
+    return Ok(cwd);
+}
 
+pub async fn init(repo_path: &PathBuf) -> Result<()> {
+    let hoox_path = repo_path.join(HOOX_FILE_NAME);
     if let Err(_) = std::fs::read_to_string(&hoox_path) {
         std::fs::write(
             &hoox_path,
@@ -48,17 +51,12 @@ hooks:
             ),
         )?;
     }
-    schema::init_hooks_files(&cwd).await?;
+    schema::init_hooks_files(&repo_path).await?;
     Ok(())
 }
 
 pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
-    let mut cwd = std::env::current_dir()?;
-    while std::fs::read_dir(cwd.join(".git")).is_err() {
-        if !cwd.pop() {
-            return Err(anyhow::anyhow!("not a git repository"));
-        }
-    }
+    let cwd = get_repo_path(std::env::current_dir()?)?;
     let hoox_path = cwd.join(HOOX_FILE_NAME);
 
     let file_content = std::fs::read_to_string(&hoox_path)?;

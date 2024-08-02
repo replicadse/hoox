@@ -10,12 +10,16 @@ use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let dir = std::env::var("OUT_DIR")?;
-
     if ci_info::is_ci() {
         return Ok(());
     };
 
-    hoox::init(PathBuf::from_str(&dir)?).await.unwrap();
+    let dir = std::env::var("OUT_DIR")?;
+    let cwd = PathBuf::from_str(&dir)?;
+    if let Ok(repo) = hoox::get_repo_path(cwd) {
+        hoox::init(&repo).await?;
+    } else {
+        eprintln!("not a git repository - skipping hook initialization");
+    }
     Ok(())
 }

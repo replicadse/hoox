@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
             Ok(())
         },
         | crate::args::Command::Init => {
-            hoox::init(std::env::current_dir()?).await?;
+            hoox::init(&hoox::get_repo_path(std::env::current_dir()?)?).await?;
             Ok(())
         },
         | crate::args::Command::Run { hook, args } => {

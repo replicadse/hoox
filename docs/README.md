@@ -26,7 +26,8 @@ hooks:
   "pre-commit": # pre-commit hook
     - command: *cargo_fmt_check # re-use anchor
     - command: *cargo_test
-    - command: 'cargo doc --no-deps'
+    - program: ["/bin/bash", "-c"] # alternative could be: ["python3", "-c"]
+      command: 'cargo doc --no-deps'
       verbosity: stderr # overrides global verbosity
       severity: warn # [error, warn]
 
@@ -38,7 +39,6 @@ hooks:
     - command: |-
         COMMIT_MSG_FILE=$1
         echo "Work in progress" > $COMMIT_MSG_FILE
-
 ```
 
 ### Available hooks
