@@ -14,29 +14,37 @@
 
 ```yaml
 version: "0.0.0"
-verbosity: all # [all, none, stdout, stderr]
+verbosity: all
 
-# anchors
-.cargo_fmt_check: &cargo_fmt_check |-
+.cargo: &cargo !inline |-
   cargo +nightly fmt --all -- --check
-.cargo_test: &cargo_test |-
   cargo test --all
 
 hooks:
-  "pre-commit": # pre-commit hook
-    - command: *cargo_fmt_check # re-use anchor
-    - command: *cargo_test
-    - program: ["/bin/bash", "-c"] # alternative could be: ["python3", "-c"]
-      command: 'cargo doc --no-deps'
-      verbosity: stderr # overrides global verbosity
-      severity: warn # [error, warn]
+  "pre-commit":
+    # use YAML anchors
+    - command: *cargo
+    # use inline command
+    - command: !inline 'cargo doc --no-deps'
+      verbosity: stderr
+      severity: warn
+    # reference a script file (path is relative to Git repo root)
+    - command: !file "./hello_world.sh"
+    # referemce a script file with custom program
+    - command: !file "./hello_world.py"
+      program: ["python3", "-c"]
+      verbosity: stderr
+      severity: error
 
-  "pre-push": # pre-push hook
-    - command: *cargo_fmt_check
-    - command: *cargo_test
+  "pre-push":
+    # re-use YAML anchor
+    - command: *cargo
 
   "prepare-commit-msg":
-    - command: |-
+    # write to $COMMIT_MSG_FILE ($1) which is going to be the template commit message for this commit
+    # which is subsequently opened in the $EDITOR program.
+    # $0 = path to "hoox.yaml" file in any hook
+    - command: !inline |-
         COMMIT_MSG_FILE=$1
         echo "Work in progress" > $COMMIT_MSG_FILE
 ```

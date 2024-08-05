@@ -64,8 +64,12 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
                 return Err(anyhow::anyhow!("can not execute empty program for {}", hook));
             }
             let mut exec = &mut std::process::Command::new(&program[0]);
-            exec =
-                exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command).arg(&hoox_path).args(args);
+            exec = exec.args(program.iter().skip(1).collect::<Vec<_>>());
+            exec = match command.command {
+                | schema::CommandContent::Inline(ref content) => exec.arg(content),
+                | schema::CommandContent::File(ref file) => exec.arg(std::fs::read_to_string(cwd.join(file))?),
+            };
+            exec = exec.arg(&hoox_path).args(args);
             let output = exec.output()?;
 
             let verbosity = command.verbosity.clone().unwrap_or(verbosity.clone());

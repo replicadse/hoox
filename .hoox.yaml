@@ -1,25 +1,17 @@
 version: "0.0.0"
-verbosity: all
 
-.cargo_fmt_check: &cargo_fmt_check |-
+.cargo_fmt_check: &cargo_fmt_check !inline |-
   cargo +nightly fmt --all -- --check
-.cargo_test: &cargo_test |-
+.cargo_test: &cargo_test !inline |-
   cargo test --all
 
 hooks:
-  "pre-commit":
+  "pre-commit": # pre-commit hook
+    - command: *cargo_fmt_check # re-use anchor
+    - command: *cargo_test
+    - command: !inline 'cargo doc --no-deps'
+      verbosity: stderr # [all, none, stdout, stderr]
+      severity: warn # [error, warn]
+  "pre-push": # pre-push hook
     - command: *cargo_fmt_check
     - command: *cargo_test
-    - command: |-
-        cargo doc --no-deps
-      verbosity: stderr
-      severity: warn
-
-  "pre-push":
-    - command: *cargo_fmt_check
-    - command: *cargo_test
-
-  # "prepare-commit-msg":
-  #   - command: |-
-  #       COMMIT_MSG_FILE=$1
-  #       echo "Work in progress" > $COMMIT_MSG_FILE

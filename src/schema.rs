@@ -55,8 +55,15 @@ pub struct Hoox {
 pub struct Command {
     pub program: Option<Vec<String>>,
     pub severity: Option<CommandSeverity>,
-    pub command: String,
+    pub command: CommandContent,
     pub verbosity: Option<Verbosity>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub enum CommandContent {
+    Inline(String),
+    File(String),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -86,7 +93,7 @@ mod test {
             hooks: HashMap::from_iter(GIT_HOOK_NAMES.iter().map(|hook_name| {
                 (hook_name.to_string(), vec![Command {
                     program: Some(vec!["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
-                    command: "echo 'Hello, world!'".to_owned(),
+                    command: CommandContent::Inline("echo 'Hello, world!'".to_owned()),
                     severity: Some(CommandSeverity::Warn),
                     verbosity: None,
                 }])
