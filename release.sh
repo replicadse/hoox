@@ -15,6 +15,8 @@ if read -t 10 -p "Do you want to continue releasing version $VERSION? (Y/n)? " r
   if [ "$response" == "Y" ]; then
     echo "Releasing version $VERSION"
     cargo publish --allow-dirty
+    git tag $VERSION
+    git push origin tag $VERSION
   else
     echo "Aborted"
   fi
