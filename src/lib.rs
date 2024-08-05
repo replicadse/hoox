@@ -23,30 +23,16 @@ pub async fn init(repo_path: &PathBuf) -> Result<()> {
             &hoox_path,
             format!(
                 r#"version: "{}"
+verbosity: all
 
 # Available Git hooks:
 # - {}
 
-# anchors
-.cargo_fmt_check: &cargo_fmt_check |-
-  cargo +nightly fmt --all -- --check
-.cargo_test: &cargo_test |-
-  cargo test --all
-
-hooks:
-  "pre-commit": # pre-commit hook
-    - command: *cargo_fmt_check # re-use anchor
-    - command: *cargo_test
-    - command: 'cargo doc --no-deps'
-      verbosity: stderr # [all, none, stdout, stderr]
-      severity: warn # [error, warn]
-  "pre-push": # pre-push hook
-    - command: *cargo_fmt_check
-    - command: *cargo_test
-
+{}
 "#,
                 env!("CARGO_PKG_VERSION"),
-                schema::GIT_HOOK_NAMES.join(" \n# - ")
+                schema::GIT_HOOK_NAMES.join(" \n# - "),
+                include_str!("../res/templates/rust.yaml"),
             ),
         )?;
     }

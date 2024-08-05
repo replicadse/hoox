@@ -40,11 +40,16 @@ pub enum ManualFormat {
 }
 
 #[derive(Debug)]
+pub enum InitTemplate {
+    Rust,
+}
+
+#[derive(Debug)]
 pub enum Command {
     Manual { path: String, format: ManualFormat },
     Autocomplete { path: String, shell: clap_complete::Shell },
 
-    Init,
+    Init { template: InitTemplate },
     Run { hook: String, args: Vec<String> },
 }
 
@@ -87,7 +92,9 @@ impl ClapArgumentLoader {
                             .required(true),
                     ),
             )
-            .subcommand(clap::Command::new("init").about("Initialize repository hooks."))
+            .subcommand(clap::Command::new("init").about("Initialize repository hooks.").arg(
+                clap::Arg::new("template").short('t').long("template").value_parser(["rust"]).default_value("rust"),
+            ))
             .subcommand(
                 clap::Command::new("run")
                     .about("Run a hook.")
@@ -119,8 +126,13 @@ impl ClapArgumentLoader {
                 path: subc.get_one::<String>("out").unwrap().into(),
                 shell: clap_complete::Shell::from_str(subc.get_one::<String>("shell").unwrap().as_str()).unwrap(),
             }
-        } else if let Some(_) = command.subcommand_matches("init") {
-            Command::Init
+        } else if let Some(subc) = command.subcommand_matches("init") {
+            Command::Init {
+                template: match subc.get_one::<String>("template").unwrap().as_str() {
+                    | "rust" => InitTemplate::Rust,
+                    | _ => return Err(anyhow::anyhow!("unknown init template")),
+                },
+            }
         } else if let Some(subc) = command.subcommand_matches("run") {
             Command::Run {
                 hook: subc.get_one::<String>("hook").unwrap().to_owned(),

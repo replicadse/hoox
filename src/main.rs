@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
             reference::build_shell_completion(&out_path, &shell)?;
             Ok(())
         },
-        | crate::args::Command::Init => {
+        | crate::args::Command::Init { .. } => {
             hoox::init(&hoox::get_repo_path(std::env::current_dir()?)?).await?;
             Ok(())
         },
