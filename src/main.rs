@@ -1,5 +1,3 @@
-include!("check_features.rs");
-
 pub mod args;
 pub mod reference;
 pub mod schema;

@@ -46,12 +46,21 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
 
     let file_content = std::fs::read_to_string(&hoox_path)?;
     let version = serde_yaml::from_str::<schema::WithVersion>(&file_content)?;
-    let version_check = version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap();
-    if version_check == version_compare::Cmp::Gt {
+    let file_v = version.version.split(".").collect::<Vec<_>>();
+    let cli_v = version.version.split(env!("CARGO_PKG_VERSION")).collect::<Vec<_>>();
+    if version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap() == version_compare::Cmp::Gt {
         return Err(anyhow::anyhow!("hoox version is outdated, please update"));
     }
-    if version.version.split(".").next().unwrap() != env!("CARGO_PKG_VERSION").split(".").next().unwrap() {
-        return Err(anyhow::anyhow!("hoox major version is incompatible"));
+    if file_v[0] == "0" && cli_v[0] == "0" {
+        if file_v[1] != cli_v[1] {
+            return Err(anyhow::anyhow!(
+                "hoox minor version is incompatible (needs to be same below 1.0.0)"
+            ));
+        }
+    } else {
+        if file_v[0] != cli_v[0] {
+            return Err(anyhow::anyhow!("hoox major version is incompatible"));
+        }
     }
 
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
