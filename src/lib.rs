@@ -47,7 +47,7 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
     let file_content = std::fs::read_to_string(&hoox_path)?;
     let version = serde_yaml::from_str::<schema::WithVersion>(&file_content)?;
     let file_v = version.version.split(".").collect::<Vec<_>>();
-    let cli_v = version.version.split(env!("CARGO_PKG_VERSION")).collect::<Vec<_>>();
+    let cli_v = env!("CARGO_PKG_VERSION").split(".").collect::<Vec<_>>();
     if version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap() == version_compare::Cmp::Gt {
         return Err(anyhow::anyhow!("hoox version is outdated, please update"));
     }
