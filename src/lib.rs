@@ -9,7 +9,6 @@ const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
 
 pub fn get_repo_path(mut cwd: PathBuf) -> Result<PathBuf> {
     while std::fs::read_dir(cwd.join(".git")).is_err() {
-        dbg!(&cwd);
         if !cwd.pop() {
             return Err(anyhow::anyhow!("not a git repository"));
         }
@@ -72,9 +71,12 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
     let verbosity = &hoox.verbosity.unwrap_or(Verbosity::All);
 
-    if let Some(hook) = hoox.hooks.get(hook) {
-        for command in hook {
+    if let Some(commands) = hoox.hooks.get(hook) {
+        for command in commands {
             let program = command.program.clone().or_else(|| Some(vec!["sh".to_owned(), "-c".to_owned()])).unwrap();
+            if program.is_empty() {
+                return Err(anyhow::anyhow!("can not execute empty program for {}", hook));
+            }
             let mut exec = &mut std::process::Command::new(&program[0]);
             exec =
                 exec.args(program.iter().skip(1).collect::<Vec<_>>()).arg(&command.command).arg(&hoox_path).args(args);
