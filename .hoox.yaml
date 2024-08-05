@@ -9,7 +9,8 @@ hooks:
   "pre-commit": # pre-commit hook
     - command: *cargo_fmt_check # re-use anchor
     - command: *cargo_test
-    - command: !inline 'cargo doc --no-deps'
+    - command: !inline |-
+        cargo doc --no-deps
       verbosity: stderr # [all, none, stdout, stderr]
       severity: warn # [error, warn]
   "pre-push": # pre-push hook

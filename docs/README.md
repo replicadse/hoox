@@ -22,7 +22,7 @@ verbosity: all
 
 hooks:
   "pre-commit":
-    # use YAML anchors
+    # use YAML anchor
     - command: *cargo
     # use inline command
     - command: !inline 'cargo doc --no-deps'
@@ -30,7 +30,7 @@ hooks:
       severity: warn
     # reference a script file (path is relative to Git repo root)
     - command: !file "./hello_world.sh"
-    # referemce a script file with custom program
+    # reference a script file with custom program
     - command: !file "./hello_world.py"
       program: ["python3", "-c"]
       verbosity: stderr
