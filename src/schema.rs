@@ -30,7 +30,7 @@ pub async fn init_hooks_files(cwd: &PathBuf) -> anyhow::Result<()> {
     let perms = std::fs::Permissions::from_mode(0o755);
     for hook_name in GIT_HOOK_NAMES {
         let hook_path = cwd.join(".git/hooks").join(&hook_name);
-        std::fs::write(&hook_path, "hoox run ${0##*/} $@")?;
+        std::fs::write(&hook_path, "hoox run --ignore-missing ${0##*/} $@")?;
         std::fs::set_permissions(&hook_path, perms.clone())?;
     }
     Ok(())

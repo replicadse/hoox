@@ -40,7 +40,7 @@ verbosity: all
     Ok(())
 }
 
-pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
+pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result<()> {
     let cwd = get_repo_path(std::env::current_dir()?)?;
     let hoox_path = cwd.join(HOOX_FILE_NAME);
 
@@ -101,6 +101,10 @@ pub async fn run(hook: &str, args: &Vec<String>) -> Result<()> {
                     return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));
                 }
             }
+        }
+    } else {
+        if !ignore_missing {
+            return Err(anyhow::anyhow!("hook not found"));
         }
     }
     Ok(())

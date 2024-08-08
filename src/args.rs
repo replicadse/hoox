@@ -46,11 +46,23 @@ pub enum InitTemplate {
 
 #[derive(Debug)]
 pub enum Command {
-    Manual { path: String, format: ManualFormat },
-    Autocomplete { path: String, shell: clap_complete::Shell },
+    Manual {
+        path: String,
+        format: ManualFormat,
+    },
+    Autocomplete {
+        path: String,
+        shell: clap_complete::Shell,
+    },
 
-    Init { template: InitTemplate },
-    Run { hook: String, args: Vec<String> },
+    Init {
+        template: InitTemplate,
+    },
+    Run {
+        hook: String,
+        args: Vec<String>,
+        ignore_missing: bool,
+    },
 }
 
 pub struct ClapArgumentLoader {}
@@ -99,7 +111,13 @@ impl ClapArgumentLoader {
                 clap::Command::new("run")
                     .about("Run a hook.")
                     .arg(clap::Arg::new("hook").required(true).index(1))
-                    .arg(clap::Arg::new("args").required(false).action(ArgAction::Append).index(2)),
+                    .arg(clap::Arg::new("args").required(false).action(ArgAction::Append).index(2))
+                    .arg(
+                        clap::Arg::new("ignore-missing")
+                            .long("ignore-missing")
+                            .required(false)
+                            .action(ArgAction::SetTrue),
+                    ),
             )
     }
 
@@ -140,6 +158,7 @@ impl ClapArgumentLoader {
                     | Some(v) => v.map(|v| v.to_string()).collect::<Vec<String>>(),
                     | None => vec![],
                 },
+                ignore_missing: subc.get_flag("ignore-missing"),
             }
         } else {
             return Err(anyhow::anyhow!("unknown command"));
