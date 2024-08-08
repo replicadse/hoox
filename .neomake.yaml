@@ -1,0 +1,13 @@
+version: "0.5"
+nodes:
+  release:
+    tasks:
+      - script: |-
+          cp Cargo.toml Cargo.toml.bak
+          sed 's/version = "0.0.0"/version = "'{{ version }}'"/g' Cargo.toml > Cargo.toml.tmp
+          mv Cargo.toml.tmp Cargo.toml
+          echo "Releasing version {{ version }}"
+          cargo publish --allow-dirty
+          git tag {{ version }}
+          git push origin tag {{ version }}
+          mv Cargo.toml.bak Cargo.toml
