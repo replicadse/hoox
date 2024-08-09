@@ -1,11 +1,13 @@
-pub mod schema;
-
-use std::path::PathBuf;
+use std::path::{
+    Path,
+    PathBuf,
+};
 
 use anyhow::Result;
-use schema::Verbosity;
 
-const HOOX_FILE_NAME: &'static str = ".hoox.yaml";
+use crate::schema;
+
+const HOOX_FILE_NAME: &str = ".hoox.yaml";
 
 pub fn get_repo_path(mut cwd: PathBuf) -> Result<PathBuf> {
     while std::fs::read_dir(cwd.join(".git")).is_err() {
@@ -13,12 +15,12 @@ pub fn get_repo_path(mut cwd: PathBuf) -> Result<PathBuf> {
             return Err(anyhow::anyhow!("not a git repository"));
         }
     }
-    return Ok(cwd);
+    Ok(cwd)
 }
 
-pub async fn init(repo_path: &PathBuf) -> Result<()> {
+pub async fn init(repo_path: &Path) -> Result<()> {
     let hoox_path = repo_path.join(HOOX_FILE_NAME);
-    if let Err(_) = std::fs::read_to_string(&hoox_path) {
+    if std::fs::read_to_string(&hoox_path).is_err() {
         std::fs::write(
             &hoox_path,
             format!(
@@ -36,18 +38,19 @@ verbosity: all
             ),
         )?;
     }
-    schema::init_hooks_files(&repo_path).await?;
+    schema::init_hooks_files(repo_path).await?;
     Ok(())
 }
 
+#[allow(unused)]
 pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result<()> {
     let cwd = get_repo_path(std::env::current_dir()?)?;
     let hoox_path = cwd.join(HOOX_FILE_NAME);
 
     let file_content = std::fs::read_to_string(&hoox_path)?;
     let version = serde_yaml::from_str::<schema::WithVersion>(&file_content)?;
-    let file_v = version.version.split(".").collect::<Vec<_>>();
-    let cli_v = env!("CARGO_PKG_VERSION").split(".").collect::<Vec<_>>();
+    let file_v = version.version.split('.').collect::<Vec<_>>();
+    let cli_v = env!("CARGO_PKG_VERSION").split('.').collect::<Vec<_>>();
     if version_compare::compare(&version.version, env!("CARGO_PKG_VERSION")).unwrap() == version_compare::Cmp::Gt {
         return Err(anyhow::anyhow!("hoox version is outdated, please update"));
     }
@@ -57,14 +60,12 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
                 "hoox minor version is incompatible (needs to be same below 1.0.0)"
             ));
         }
-    } else {
-        if file_v[0] != cli_v[0] {
-            return Err(anyhow::anyhow!("hoox major version is incompatible"));
-        }
+    } else if file_v[0] != cli_v[0] {
+        return Err(anyhow::anyhow!("hoox major version is incompatible"));
     }
 
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
-    let verbosity = &hoox.verbosity.unwrap_or(Verbosity::All);
+    let verbosity = &hoox.verbosity.unwrap_or(schema::Verbosity::All);
 
     if let Some(commands) = hoox.hooks.get(hook) {
         for command in commands {
@@ -82,13 +83,13 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
             let output = exec.output()?;
 
             let verbosity = command.verbosity.clone().unwrap_or(verbosity.clone());
-            if verbosity == Verbosity::All || verbosity == Verbosity::Stdout {
+            if verbosity == schema::Verbosity::All || verbosity == schema::Verbosity::Stdout {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 if stdout.len() > 0 {
                     println!("{}", stdout);
                 }
             }
-            if verbosity == Verbosity::All || verbosity == Verbosity::Stderr {
+            if verbosity == schema::Verbosity::All || verbosity == schema::Verbosity::Stderr {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if stderr.len() > 0 {
                     eprintln!("{}", stderr);
@@ -102,10 +103,8 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
                 }
             }
         }
-    } else {
-        if !ignore_missing {
-            return Err(anyhow::anyhow!("hook not found"));
-        }
+    } else if !ignore_missing {
+        return Err(anyhow::anyhow!("hook not found"));
     }
     Ok(())
 }

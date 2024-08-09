@@ -1,5 +1,7 @@
-#[path = "src/lib.rs"]
-mod hoox;
+#[path = "src/commands.rs"]
+mod commands;
+#[path = "src/schema.rs"]
+mod schema;
 
 use std::{
     path::PathBuf,
@@ -16,8 +18,8 @@ async fn main() -> Result<()> {
 
     let dir = std::env::var("OUT_DIR")?;
     let cwd = PathBuf::from_str(&dir)?;
-    if let Ok(repo) = hoox::get_repo_path(cwd) {
-        hoox::init(&repo).await?;
+    if let Ok(repo) = commands::get_repo_path(cwd) {
+        commands::init(&repo).await?;
     } else {
         eprintln!("not a git repository - skipping hook initialization");
     }

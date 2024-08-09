@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     os::unix::fs::PermissionsExt,
-    path::PathBuf,
+    path::Path,
 };
 
 pub const GIT_HOOK_NAMES: [&str; 19] = [
@@ -26,10 +26,10 @@ pub const GIT_HOOK_NAMES: [&str; 19] = [
     "update",
 ];
 
-pub async fn init_hooks_files(cwd: &PathBuf) -> anyhow::Result<()> {
+pub async fn init_hooks_files(cwd: &Path) -> anyhow::Result<()> {
     let perms = std::fs::Permissions::from_mode(0o755);
     for hook_name in GIT_HOOK_NAMES {
-        let hook_path = cwd.join(".git/hooks").join(&hook_name);
+        let hook_path = cwd.join(".git/hooks").join(hook_name);
         std::fs::write(&hook_path, "hoox run --ignore-missing ${0##*/} $@")?;
         std::fs::set_permissions(&hook_path, perms.clone())?;
     }
@@ -83,6 +83,7 @@ pub enum CommandSeverity {
 }
 
 mod test {
+    #[allow(unused_imports)]
     use super::*;
 
     #[tokio::test]
@@ -92,7 +93,7 @@ mod test {
             verbosity: Some(Verbosity::All),
             hooks: HashMap::from_iter(GIT_HOOK_NAMES.iter().map(|hook_name| {
                 (hook_name.to_string(), vec![Command {
-                    program: Some(vec!["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
+                    program: Some(["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
                     command: CommandContent::Inline("echo 'Hello, world!'".to_owned()),
                     severity: Some(CommandSeverity::Warn),
                     verbosity: None,
