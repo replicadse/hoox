@@ -66,6 +66,7 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
 
     let hoox = serde_yaml::from_str::<schema::Hoox>(&file_content)?;
     let verbosity = &hoox.verbosity.unwrap_or(schema::Verbosity::All);
+    let severity = &hoox.severity.unwrap_or(schema::CommandSeverity::Error);
 
     if let Some(commands) = hoox.hooks.get(hook) {
         for command in commands {
@@ -83,6 +84,8 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
             let output = exec.output()?;
 
             let verbosity = command.verbosity.clone().unwrap_or(verbosity.clone());
+            let severity = command.severity.clone().unwrap_or(severity.clone());
+
             if verbosity == schema::Verbosity::All || verbosity == schema::Verbosity::Stdout {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 if stdout.len() > 0 {
@@ -96,7 +99,7 @@ pub async fn run(hook: &str, args: &Vec<String>, ignore_missing: bool) -> Result
                 }
             }
 
-            if command.severity.is_none() || command.severity == Some(schema::CommandSeverity::Error) {
+            if severity == schema::CommandSeverity::Error {
                 let status = exec.status().unwrap();
                 if !status.success() {
                     return Err(anyhow::anyhow!("hook failed with code {}", status.code().unwrap()));

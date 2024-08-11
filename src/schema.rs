@@ -47,6 +47,7 @@ pub struct WithVersion {
 pub struct Hoox {
     pub version: String,
     pub verbosity: Option<Verbosity>,
+    pub severity: Option<CommandSeverity>,
     pub hooks: HashMap<String, Vec<Command>>,
 }
 
@@ -91,6 +92,7 @@ mod test {
         let hoox = Hoox {
             version: env!("CARGO_PKG_VERSION").to_owned(),
             verbosity: Some(Verbosity::All),
+            severity: Some(CommandSeverity::Error),
             hooks: HashMap::from_iter(GIT_HOOK_NAMES.iter().map(|hook_name| {
                 (hook_name.to_string(), vec![Command {
                     program: Some(["sh", "-c"].iter().map(|v| v.to_string()).collect::<Vec<_>>()),
