@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
     let dir = std::env::var("OUT_DIR")?;
     let cwd = PathBuf::from_str(&dir)?;
     if let Ok(repo) = commands::get_repo_path(cwd) {
-        commands::init(&repo).await?;
+        commands::init(&repo, None).await?;
     } else {
         eprintln!("not a git repository - skipping hook initialization");
     }

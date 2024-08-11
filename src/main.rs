@@ -32,8 +32,15 @@ async fn main() -> Result<()> {
             reference::build_shell_completion(&out_path, &shell)?;
             Ok(())
         },
-        | crate::args::Command::Init { .. } => {
-            commands::init(&commands::get_repo_path(std::env::current_dir()?)?).await?;
+        | crate::args::Command::Init { template } => {
+            let template_content = match template {
+                | args::InitTemplate::Rust => include_str!("../res/templates/rust.yaml"),
+            };
+            commands::init(
+                &commands::get_repo_path(std::env::current_dir()?)?,
+                Some(template_content),
+            )
+            .await?;
             Ok(())
         },
         | crate::args::Command::Run {

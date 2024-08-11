@@ -18,7 +18,7 @@ pub fn get_repo_path(mut cwd: PathBuf) -> Result<PathBuf> {
     Ok(cwd)
 }
 
-pub async fn init(repo_path: &Path) -> Result<()> {
+pub async fn init(repo_path: &Path, template: Option<&str>) -> Result<()> {
     let hoox_path = repo_path.join(HOOX_FILE_NAME);
     if std::fs::read_to_string(&hoox_path).is_err() {
         std::fs::write(
@@ -34,7 +34,7 @@ verbosity: all
 "#,
                 env!("CARGO_PKG_VERSION"),
                 schema::GIT_HOOK_NAMES.join(" \n# - "),
-                include_str!("../res/templates/rust.yaml"),
+                template.unwrap_or(include_str!("../res/templates/rust.yaml")),
             ),
         )?;
     }
