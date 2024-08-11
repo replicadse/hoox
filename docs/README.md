@@ -42,6 +42,8 @@ version: "0.0.0"
 verbosity: all
 
 .cargo: &cargo !inline |-
+  set -e
+  set -u
   cargo +nightly fmt --all -- --check
   cargo test --all
 

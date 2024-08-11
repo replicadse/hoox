@@ -1,16 +1,16 @@
 version: "0.0.0"
 
 .cargo_check: &cargo_check !inline |-
+  set -e
   cargo +nightly fmt --all -- --check
-.cargo_clippy_check: &cargo_clippy_check !inline |-
   cargo +nightly clippy --all-targets --all-features -- -D warnings
 .cargo_test: &cargo_test !inline |-
+  set -e
   cargo test --all
 
 hooks:
   "pre-commit": # pre-commit hook
     - command: *cargo_check # re-use anchor
-    - command: *cargo_clippy_check
     - command: *cargo_test
     - command: !inline |-
         cargo doc --no-deps
@@ -18,5 +18,4 @@ hooks:
       severity: warn # [error, warn]
   "pre-push": # pre-push hook
     - command: *cargo_check
-    - command: *cargo_clippy_check
     - command: *cargo_test
