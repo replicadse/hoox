@@ -25,7 +25,7 @@ clap = "4.5.14"
 clap_complete = "4.5.13"
 clap_mangen = "0.2.23"
 clap-markdown = "0.1.4"
-serde = { version = "1.0.205", features = ["derive"] }
+serde = { version = "1.0.206", features = ["derive"] }
 serde_yaml = "0.9.34"
 anyhow = "1.0.86"
 version-compare = "0.2.0"
@@ -33,7 +33,7 @@ version-compare = "0.2.0"
 [build-dependencies]
 async-trait = "0.1.81"
 tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros"] }
-serde = { version = "1.0.205", features = ["derive"] }
+serde = { version = "1.0.206", features = ["derive"] }
 serde_yaml = "0.9.34"
 anyhow = "1.0.86"
 ci_info = "0.14.14"
