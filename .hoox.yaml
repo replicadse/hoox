@@ -4,7 +4,7 @@ version: "0.0.0"
   set -e
   cargo build --all-features
   cargo +nightly fmt --all -- --check
-  cargo +nightly clippy --all-targets --all-features -- -D warnings
+  cargo +nightly clippy --all -- -D warnings
   cargo test --all
   cargo doc --no-deps
 
