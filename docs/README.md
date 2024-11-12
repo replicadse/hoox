@@ -12,18 +12,10 @@ The Git hooks will contain calls to the `hoox` cli, therefore making it necessar
 
 ### Repo initialization
 
-In order to initialize a repo you can either:
-
-- Add hoox to the dev-dependencies of the crate you're working with (if you're working on a rust project)
-  ```bash
-  cargo add hoox --dev
-  ```
-  This command installs hoox in the git repository during the build process (using a custom `build.rs`) even when it's not in the root `Cargo.toml`. It moves up the directory path, starting from the `OUT_DIR` env variable during build (usually the `target` folder), to find the first folder containing a `.git` subfolder.
-- OR install hoox manually into the Git folder with
-  ```bash
-  hoox init
-  ```
-  This method works the same way as the method mentioned above although it does not use the `OUT_DIR` env variable that is present during build but it uses the current working directory of the shell (`cwd`).
+Install hoox manually into the Git folder with
+```bash
+hoox init
+```
 
 ### Run hooks manually
 
